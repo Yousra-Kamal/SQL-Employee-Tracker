@@ -251,3 +251,53 @@ function addEmployee() {
     });
   });
 }
+
+// Update roles
+function updateRole() {
+  const sql2 = `SELECT * FROM employee`;
+  db.query(sql2, (err, res) => {
+    employeeList = res.map((employee) => ({
+      name: employee.first_name.concat(" ", employee.last_name),
+      value: employee.id,
+    }));
+    const sql3 = `SELECT * FROM roles`;
+    db.query(sql3, (err, res) => {
+      roleList = res.map((role) => ({
+        name: role.title,
+        value: role.id,
+      }));
+      return inquirer
+        .prompt([
+          {
+            type: "list",
+            name: "employee",
+            message: "Which employee's role do you want to update?",
+            choices: employeeList,
+          },
+          {
+            type: "list",
+            name: "role",
+            message: "Which role do you want to assign the selected employee?",
+            choices: roleList,
+          },
+          {
+            type: "list",
+            name: "manager",
+            message: "Who will be this employee's manager?",
+            choices: employeeList,
+          },
+        ])
+        .then((answers) => {
+          const sql = `UPDATE employee SET role_id= ${answers.role}, manager_id=${answers.manager} WHERE id =${answers.employee};`;
+          db.query(sql, (err, res) => {
+            if (err) {
+              console.log(err);
+              return;
+            }
+            console.log(yellow + `\n Employee role updated\n` + reset);
+            questions();
+          });
+        });
+    });
+  });
+}
