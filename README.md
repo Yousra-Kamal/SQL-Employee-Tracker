@@ -1,11 +1,11 @@
 # Employee Tracker
 
 ## Description
+
 This is an employee tracker database. It allows users to input departments, roles, and employees, update an employee's role, and view a table of departments, roles, and employees.
 
-
-
 ## Acceptance Criteria
+
 ```md
 GIVEN a command-line application that accepts user input
 WHEN I start the application
@@ -23,10 +23,15 @@ THEN I am prompted to enter the name, salary, and department for the role and th
 WHEN I choose to add an employee
 THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
 WHEN I choose to update an employee role
-THEN I am prompted to select an employee to update and their new role and this information is updated in the database 
+THEN I am prompted to select an employee to update and their new role and this information is updated in the database
 ```
+
 ## Links
 
+View a complete video demonstration of the application: [Employee Tracker Demo](https://www.loom.com/share/3f54d2d6a69b4ac2a7eb88c8ff8b25a9?sid=113ffeda-ba93-4578-9599-fdc90da9572a)
+
+![alt text](./assets/images/demo.gif)
 
 ## Credits
+
 - USYD-Bootcamp (week 12 class activities)
