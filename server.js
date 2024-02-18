@@ -5,7 +5,7 @@ const mysql = require("mysql2");
 const cTable = require("console.table");
 const yellow = "\x1b[33m";
 const blue = "\x1b[34m";
-
+const red = "\x1b[31m";
 const reset = "\x1b[0m";
 
 // Connect to database
@@ -23,15 +23,17 @@ const db = mysql.createConnection(
 
 db.connect(function (err) {
   if (err) throw err;
-  console.log("**************************************");
-  console.log("*                                    *");
-  console.log("*      💥 EMPLOYEE MANAGER 💥        *");
-  console.log("*                                    *");
-  console.log(`**************************************\n\n`);
+  console.log(yellow + "**************************************" + reset);
+  console.log(red + "*                                    *" + reset);
+  console.log(red + "*                                    *" + reset);
+  console.log(yellow + "*      💥 EMPLOYEE MANAGER 💥        *" + reset);
+  console.log(red + "*                                    *" + reset);
+  console.log(red + "*                                    *" + reset);
+  console.log(yellow + `**************************************\n\n` + reset);
   questions();
 });
 
-// Starting Question
+// Starting Questions
 function questions() {
   inquirer
     .prompt([
@@ -95,7 +97,7 @@ function viewDepartments() {
 
 // View Roles
 function viewRoles() {
-  const sql = `SELECT roles.id, roles.title AS role, roles.salary, department.name AS department FROM roles INNER JOIN department ON (department.id = roles.department_id);`;
+  const sql = `SELECT roles.id, roles.title AS job_title, roles.salary, department.name AS department FROM roles INNER JOIN department ON (department.id = roles.department_id);`;
   console.log(yellow + `\n Here is a list of all the Roles: \n` + reset);
   db.query(sql, (err, res) => {
     err ? console.error(err) : console.table(res);
@@ -105,7 +107,7 @@ function viewRoles() {
 
 // View Employees
 function viewEmployees() {
-  const sql = `SELECT employee.id, employee.first_name, employee.last_name, roles.title AS role, department.name AS department, roles.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager FROM employee LEFT JOIN employee manager on manager.id = employee.manager_id INNER JOIN roles ON (roles.id = employee.role_id) INNER JOIN department ON (department.id = roles.department_id) ORDER BY employee.id;`;
+  const sql = `SELECT employee.id, employee.first_name, employee.last_name, roles.title AS job_title, department.name AS department, roles.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager FROM employee LEFT JOIN employee manager on manager.id = employee.manager_id INNER JOIN roles ON (roles.id = employee.role_id) INNER JOIN department ON (department.id = roles.department_id) ORDER BY employee.id;`;
 
   console.log(yellow + `\n Here is a list of all the Employees: \n` + reset);
   db.query(sql, (err, res) => {
@@ -114,7 +116,7 @@ function viewEmployees() {
   });
 }
 
-// Add Departments
+// Add Department
 function addDepartment() {
   inquirer
     .prompt([
@@ -140,4 +142,112 @@ function addDepartment() {
         });
       });
     });
+}
+
+// Add Role
+function addRole() {
+  const sql2 = `SELECT * FROM department`;
+  db.query(sql2, (error, response) => {
+    departmentList = response.map((dpt) => ({
+      name: dpt.name,
+      value: dpt.id,
+    }));
+    return inquirer
+      .prompt([
+        {
+          type: "input",
+          name: "title",
+          message: "What is the title of the role you'd like to add?",
+        },
+        {
+          type: "input",
+          name: "salary",
+          message: "What is the salary for this role?",
+        },
+        {
+          type: "list",
+          name: "department",
+          message: "Which department is this role in?",
+          choices: departmentList,
+        },
+      ])
+      .then((answers) => {
+        const sql = `INSERT INTO roles SET title='${answers.title}', salary= ${answers.salary}, department_id= ${answers.department};`;
+        db.query(sql, (err, res) => {
+          if (err) {
+            console.log(err);
+            return;
+          }
+          console.log(
+            yellow + `\n Added ${answers.title} to the database \n` + reset
+          );
+          db.query(`SELECT * FROM roles`, (err, results) => {
+            err ? console.error(err) : console.table(results);
+            questions();
+          });
+        });
+      });
+  });
+}
+
+// Add Employee
+function addEmployee() {
+  const sql2 = `SELECT * FROM employee`;
+  db.query(sql2, (err, res) => {
+    employeeList = res.map((employee) => ({
+      name: employee.first_name.concat(" ", employee.last_name),
+      value: employee.id,
+    }));
+
+    const sql3 = `SELECT * FROM roles`;
+    db.query(sql3, (err, res) => {
+      roleList = res.map((role) => ({
+        name: role.title,
+        value: role.id,
+      }));
+      return inquirer
+        .prompt([
+          {
+            type: "input",
+            name: "first",
+            message: "What is the employee's first name?",
+          },
+          {
+            type: "input",
+            name: "last",
+            message: "What is the employee's last name?",
+          },
+          {
+            type: "list",
+            name: "role",
+            message: "What is the employee's role?",
+            choices: roleList,
+          },
+          {
+            type: "list",
+            name: "manager",
+            message: "Who is the employee's manager?",
+            choices: employeeList,
+          },
+        ])
+        .then((answers) => {
+          const sql = `INSERT INTO employee SET first_name='${answers.first}', last_name= '${answers.last}', role_id= ${answers.role}, manager_id=${answers.manager};`;
+          db.query(sql, (err, res) => {
+            if (err) {
+              console.log(err);
+              return;
+            }
+            console.log(
+              yellow +
+                `\n Added ${answers.first} ${answers.last} to the database \n` +
+                reset
+            );
+            db.query(`SELECT * FROM employee`, (err, results) => {
+              err ? console.error(err) : console.table(results);
+              questions();
+            });
+          });
+        });
+    });
+  });
 }
